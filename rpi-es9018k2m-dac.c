@@ -52,9 +52,9 @@ static struct snd_soc_dai_link snd_rpi_es9018k2m_dac_dai[] = {
 	.name		= "RPi-ES9018K2M-DAC",
 	.stream_name	= "RPi-DAC ES9018K2M HiFi",
 	.cpu_dai_name	= "bcm2708-i2s.0",
-	.codec_dai_name	= "es9018k2m-hifi",
+	.codec_dai_name	= "es9018k2m-dai",
 	.platform_name	= "bcm2708-i2s.0",
-	.codec_name	= "es9018k2m-codec",
+	.codec_name	= "es9018k2m-i2c.1-0048",
 	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				SND_SOC_DAIFMT_CBS_CFS,
 	.ops		= &snd_rpi_es9018k2m_dac_ops,
@@ -75,24 +75,28 @@ static int snd_rpi_es9018k2m_dac_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	snd_rpi_es9018k2m_dac.dev = &pdev->dev;
-	
 	if (pdev->dev.of_node) {
 		struct device_node *i2s_node;
-		struct snd_soc_dai_link *dai = &snd_rpi_es9018k2m_dac_dai[0];
+		struct snd_soc_dai_link *dai;
+		dai = &snd_rpi_es9018k2m_dac_dai[0];
 		i2s_node = of_parse_phandle(pdev->dev.of_node, "i2s-controller", 0);
-
 		if (i2s_node) {
 			dai->cpu_dai_name = NULL;
 			dai->cpu_of_node = i2s_node;
 			dai->platform_name = NULL;
 			dai->platform_of_node = i2s_node;
+		} else {
+			dev_err(&pdev->dev,
+			    "Property 'i2s-controller' missing or invalid\n");
+			return (-EINVAL);
 		}
+		dai->dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS;
 	}
-
+	mdelay(50);
 	ret = snd_soc_register_card(&snd_rpi_es9018k2m_dac);
-	if (ret)
+	if (ret){
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n", ret);
-
+	}
 	return ret;
 }
 
@@ -102,7 +106,7 @@ static int snd_rpi_es9018k2m_dac_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id snd_rpi_es9018k2m_dac_of_match[] = {
-	{ .compatible = "nobody,es9018k2m-dac", },
+	{ .compatible = "nobody,rpi-es9018k2m-dac", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, snd_rpi_es9018k2m_dac_of_match);

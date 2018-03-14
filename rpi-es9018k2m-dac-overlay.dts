@@ -8,7 +8,7 @@
 	fragment@0 {
 		target = <&sound>;
 		frag0: __overlay__ {
-			compatible = "nobody,es9018k2m-dac";
+			compatible = "nobody,rpi-es9018k2m-dac";
 			i2s-controller = <&i2s>;
 			status = "okay";
 		};
@@ -35,9 +35,5 @@
 				status = "okay";
 			};
 		};
-	};
-
-	__overrides__ {
-		slave = <&frag0>,"nobody,slave?";
 	};
 };

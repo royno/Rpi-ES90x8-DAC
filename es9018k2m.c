@@ -32,7 +32,9 @@ struct es9018k2m_priv {
 	unsigned int fmt;
 };
 
-
+uint8_t SABRE9018Q2C_VOLUME1;
+uint8_t SABRE9018Q2C_VOLUME2;
+bool SABRE9018Q2C_isMuted;
 /* SABRE9018Q2C Default Register Value */
 static const struct reg_default es9018k2m_reg_defaults[] = {
 	{ 0, 0x00 },
@@ -43,13 +45,13 @@ static const struct reg_default es9018k2m_reg_defaults[] = {
 	{ 7, 0x80 },
 	{ 8, 0x10 },
 	{ 9, 0x00 },
-	{ 10,0x05 },
+	{ 10,0x00 },
 	{ 11,0x02 },
 	{ 12,0x5a },
 	{ 13,0x40 },
 	{ 14,0x8a },
-	{ 15,0x00 },
-	{ 16,0x00 },
+	{ 15,0x80 },
+	{ 16,0x80 },
 	{ 17,0xff },
 	{ 18,0xff },
 	{ 19,0xff },
@@ -90,14 +92,36 @@ static bool es9018k2m_volatile(struct device *dev, unsigned int reg)
 	return false;
 }
 
+static int es9018k2m_mute(struct snd_soc_dai *dai, int mute)
+{
+	if(mute)
+	{
+		if(!SABRE9018Q2C_isMuted)
+		{
+			SABRE9018Q2C_VOLUME1 = snd_soc_read(dai->codec, ES9018K2M_VOLUME1);
+			SABRE9018Q2C_VOLUME2 = snd_soc_read(dai->codec, ES9018K2M_VOLUME2);
+			SABRE9018Q2C_isMuted = true;
+		}
+		snd_soc_write(dai->codec, ES9018K2M_VOLUME1, 0xFF);
+		snd_soc_write(dai->codec, ES9018K2M_VOLUME2, 0xFF);
+	}
+	return 0;
+}
 
+static int es9018k2m_unmute(struct snd_soc_dai *dai)
+{
+	snd_soc_write(dai->codec, ES9018K2M_VOLUME1, SABRE9018Q2C_VOLUME1);
+	snd_soc_write(dai->codec, ES9018K2M_VOLUME2, SABRE9018Q2C_VOLUME2);
+	SABRE9018Q2C_isMuted = false;
+	return 0;
+}
 /* Volume Scale */
 static const DECLARE_TLV_DB_SCALE(volume_tlv, -12750, 50, 1);
 
 /* Control */
 static const struct snd_kcontrol_new es9018k2m_controls[] = {
-SOC_DOUBLE_R_TLV("Master Playback Volume", ES9018K2M_VOLUME1, ES9018K2M_VOLUME2,
-		 0, 255, 0, volume_tlv),
+SOC_DOUBLE_R_TLV("Digital Playback Volume", ES9018K2M_VOLUME1, ES9018K2M_VOLUME2,
+		 0, 255, 1, volume_tlv),
 };
 
 
@@ -112,7 +136,7 @@ static const struct snd_pcm_hw_constraint_list constraints_master = {
 
 static const uint32_t es9018k2m_dai_rates_slave[] = {
 	8000, 11025, 16000, 22050, 32000,
-	44100, 48000, 64000, 88200, 96000, 176400, 192000
+	44100, 48000, 64000, 88200, 96000, 176400, 192000, 352800, 384000
 };
 
 static const struct snd_pcm_hw_constraint_list constraints_slave = {
@@ -163,7 +187,7 @@ static int es9018k2m_dai_startup(
 	struct snd_soc_codec     *codec = dai->codec;
 	struct es9018k2m_priv *es9018k2m
 					= snd_soc_codec_get_drvdata(codec);
-
+	es9018k2m_mute(dai, 1);
 	switch (es9018k2m->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		return es9018k2m_dai_startup_master(substream, dai);
@@ -189,7 +213,7 @@ static int es9018k2m_hw_params(
 			iface |= 0x0;
 			break;
 		case SNDRV_PCM_FORMAT_S24_LE:
-			iface |= 0x40;
+			iface |= 0x80;
 			break;
 		case SNDRV_PCM_FORMAT_S32_LE:
 			iface |= 0x80;
@@ -199,39 +223,94 @@ static int es9018k2m_hw_params(
 	}
 
 	snd_soc_write(codec, ES9018K2M_INPUT_CONFIG, iface);
-	printk(KERN_DEBUG "ess9018k2m: %s reg=0x%x value=0x%x,0x%x #####end\n",__func__,ES9018K2M_INPUT_CONFIG,iface,snd_soc_read(codec, ES9018K2M_INPUT_CONFIG));
+	return 0;
+}
+
+static int es9018k2m_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
+{
+	struct snd_soc_codec      *codec = dai->codec;
+	struct es9018k2m_priv *es9018k2m
+					= snd_soc_codec_get_drvdata(codec);
+
+	/* interface format */
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+	case SND_SOC_DAIFMT_I2S:
+		break;
+
+	case SND_SOC_DAIFMT_RIGHT_J:
+	case SND_SOC_DAIFMT_LEFT_J:
+	default:
+		return (-EINVAL);
+	}
+
+	/* clock inversion */
+	if ((fmt & SND_SOC_DAIFMT_INV_MASK) != SND_SOC_DAIFMT_NB_NF) {
+		return (-EINVAL);
+	}
+
+	/* Set Audio Data Format */
+	es9018k2m->fmt = fmt;
 
 	return 0;
 }
 
+static void es9018k2m_shutdown(struct snd_pcm_substream * substream, struct snd_soc_dai *dai)
+{
+	es9018k2m_mute(dai, 1);
+}
+
+static int es9018k2m_dai_trigger(struct snd_pcm_substream *substream, int cmd, struct snd_soc_dai *dai)
+{
+	int ret = 0;
+	switch(cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_RESUME:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+			mdelay(1500);
+			es9018k2m_unmute(dai);
+			break;
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			es9018k2m_mute(dai, 1);
+			break;
+		default:
+			ret = -EINVAL;
+			break;
+	}
+	return ret;
+}
 
 static const struct snd_soc_dai_ops es9018k2m_dai_ops = {
 	.startup      = es9018k2m_dai_startup,
 	.hw_params    = es9018k2m_hw_params,
+	.digital_mute = es9018k2m_mute,
+	.set_fmt 	  = es9018k2m_set_fmt,
+	.shutdown	  = es9018k2m_shutdown,
+	.trigger	  = es9018k2m_dai_trigger,
 };
-
-
-#define ES9018K2M_RATES (SNDRV_PCM_RATE_8000_44100 | SNDRV_PCM_RATE_64000 | SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |SNDRV_PCM_RATE_96000|\
-		                     SNDRV_PCM_RATE_176400| SNDRV_PCM_RATE_192000)
-
-#define ES9018K2M_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
-		    SNDRV_PCM_FMTBIT_S32_LE)
 
 static struct snd_soc_dai_driver es9018k2m_dai = {
 	.name = "es9018k2m-dai",
 	.playback = {
 		.stream_name  = "Playback",
-		.channels_min = 1,
+		.channels_min = 2,
 		.channels_max = 2,
-		.rates        = ES9018K2M_RATES,
-		.formats      = ES9018K2M_FORMATS,
+		.rates = SNDRV_PCM_RATE_CONTINUOUS,
+		.rate_min = 8000,
+		.rate_max = 384000,
+		.formats      = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
+		    SNDRV_PCM_FMTBIT_S32_LE,
 	},
 	.ops = &es9018k2m_dai_ops,
 };
 
 static struct snd_soc_codec_driver es9018k2m_codec_driver = {
-	.controls         = es9018k2m_controls,
-	.num_controls     = ARRAY_SIZE(es9018k2m_controls),
+	.component_driver = {
+		.controls         = es9018k2m_controls,
+		.num_controls     = ARRAY_SIZE(es9018k2m_controls),
+	}
 };
 
 
