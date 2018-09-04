@@ -3,7 +3,7 @@ BUILD_DIR := $(shell pwd)
 DTC_DIR = ${KERNEL_SRC}/scripts/dtc
 VERBOSE = 1
 
-OBJS    = rpi-es9018k2m-dac.o es9018k2m.o
+OBJS    = es9038q2m-dac.o es9038q2m.o
 
 obj-m := $(OBJS)
 
@@ -15,7 +15,7 @@ clean:
 	rm -f rpi-es9018k2m-dac-overlay.dtb
 
 dtbs:
-	$(DTC_DIR)/dtc -@ -I dts -O dtb -o rpi-es9018k2m-dac-overlay.dtb rpi-es9018k2m-dac-overlay.dts
+	$(DTC_DIR)/dtc -@ -I dts -O dtb -o es9038q2m-dac-overlay.dtb es9038q2m-dac-overlay.dts
 
 modules_install:
 	mkdir -p $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
