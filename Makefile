@@ -1,9 +1,9 @@
-KERNEL_SRC = /lib/modules/$(shell uname -r)/source
+KERNEL_SRC = ~/linux
 BUILD_DIR := $(shell pwd)
-DTC_DIR = /lib/modules/$(shell uname -r)/build/scripts/dtc/
-VERBOSE = 0
+DTC_DIR = ${KERNEL_SRC}/scripts/dtc
+VERBOSE = 1
 
-OBJS    = rpi-es9018k2m-dac.o  es9018k2m.o
+OBJS    = rpi-es9018k2m-dac.o es9018k2m.o
 
 obj-m := $(OBJS)
 
@@ -12,31 +12,24 @@ all:
 
 clean:
 	make -C $(KERNEL_SRC) SUBDIRS=$(BUILD_DIR) clean
-	rm -f sabreberry32-overlay.dtb
+	rm -f rpi-es9018k2m-dac-overlay.dtb
 
 dtbs:
-	$(DTC_DIR)/dtc -@ -I dts -O dtb -o sabreberry32-overlay.dtb sabreberry32-overlay.dts
+	$(DTC_DIR)/dtc -@ -I dts -O dtb -o rpi-es9018k2m-dac-overlay.dtb rpi-es9018k2m-dac-overlay.dts
 
 modules_install:
-	cp sabre9018q2c.ko     /lib/modules/$(shell uname -r)/kernel/sound/soc/codecs/
-	cp sabreberry32.ko     /lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
-	depmod -a
+	mkdir -p $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
+	cp rpi-es9018k2m-dac.ko $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
+	cp es9018k2m.ko $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
 
 modules_remove:
-	rm /lib/modules/$(shell uname -r)/kernel/sound/soc/codecs/sabre9018q2c.ko
-	rm /lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/sabreberry32.ko
-	depmod -a
-
-install:
-	modprobe sabre9018q2c
-	modprobe sabreberry32
-
-remove:
-	modprobe -r sabreberry32
-	modprobe -r sabre9018q2c
+	rm $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/rpi-es9018k2m-dac.ko
+	rm $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/es9018k2m.ko
 
 install_dtb:
-	cp sabreberry32-overlay.dtb /boot/overlays/
+	mkdir -p $(DESTDIR)/boot/overlays/
+	cp rpi-es9018k2m-dac-overlay.dtb $(DESTDIR)/boot/overlays/
 
 remove_dtb:
-	rm /boot/overlays/sabreberry32-overlay.dtb
+	rm /boot/overlays/rpi-es9018k2m-dac-overlay.dtb
+
