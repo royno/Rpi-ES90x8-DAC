@@ -15,7 +15,7 @@ clean:
 	rm -f rpi-es9018k2m-dac-overlay.dtb
 
 dtbs:
-	$(DTC_DIR)/dtc -@ -I dts -O dtb -o es9038q2m-dac-overlay.dtb es9038q2m-dac-overlay.dts
+	$(DTC_DIR)/dtc -@ -I dts -O dtb -o es9038q2m-dac-overlay.dtbo es9038q2m-dac-overlay.dts
 
 modules_install:
 	mkdir -p $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
