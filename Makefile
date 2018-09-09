@@ -1,4 +1,4 @@
-KERNEL_SRC = ~/linux
+KERNEL_SRC = /usr/src/linux-headers-$(shell uname -r)
 BUILD_DIR := $(shell pwd)
 DTC_DIR = ${KERNEL_SRC}/scripts/dtc
 VERBOSE = 1
@@ -12,24 +12,21 @@ all:
 
 clean:
 	make -C $(KERNEL_SRC) SUBDIRS=$(BUILD_DIR) clean
-	rm -f rpi-es9018k2m-dac-overlay.dtb
+	rm -f rpi-es9038q2m-dac-overlay.dtbo
 
 dtbs:
 	$(DTC_DIR)/dtc -@ -I dts -O dtb -o es9038q2m-dac-overlay.dtbo es9038q2m-dac-overlay.dts
 
 modules_install:
-	mkdir -p $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
-	cp rpi-es9018k2m-dac.ko $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
-	cp es9018k2m.ko $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
+	cp es9038q2m-dac.ko /lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/
+	cp es9038q2m.ko /lib/modules/$(shell uname -r)/kernel/sound/soc/codecs/
 
 modules_remove:
-	rm $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/rpi-es9018k2m-dac.ko
-	rm $(DESTDIR)/lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/es9018k2m.ko
+	rm /lib/modules/$(shell uname -r)/kernel/sound/soc/bcm/es9038q2m-dac.ko
+	rm /lib/modules/$(shell uname -r)/kernel/sound/soc/codecs/es9018k2m.ko
 
-install_dtb:
-	mkdir -p $(DESTDIR)/boot/overlays/
-	cp rpi-es9018k2m-dac-overlay.dtb $(DESTDIR)/boot/overlays/
+install_dtbo:
+	cp es9038q2m-dac-overlay.dtbo /boot/overlays/
 
 remove_dtb:
-	rm /boot/overlays/rpi-es9018k2m-dac-overlay.dtb
-
+	rm /boot/overlays/es9038k2m-dac-overlay.dtbo
