@@ -157,6 +157,10 @@ static int es9018k2m_dai_startup(
 	struct es9018k2m_priv *es9018k2m
 					= snd_soc_codec_get_drvdata(codec);
 	es9018k2m_mute(dai, 1);
+	//reset and init es9038
+	snd_soc_write(codec, ES9018K2M_SYSTEM_SETTING, 0x1);
+	snd_soc_write(codec, ES9038Q2M_DEEMPHASIS_DOP, 0x4a);
+	snd_soc_write(codec, ES9018K2M_SOFT_START, 0x4a);
 	switch (es9018k2m->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		return es9018k2m_dai_startup_master(substream, dai);
