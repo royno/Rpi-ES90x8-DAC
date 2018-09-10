@@ -32,9 +32,6 @@ struct es9018k2m_priv {
 	unsigned int fmt;
 };
 
-uint8_t SABRE9018Q2C_VOLUME1;
-uint8_t SABRE9018Q2C_VOLUME2;
-bool SABRE9018Q2C_isMuted;
 /* SABRE9018Q2C Default Register Value */
 static const struct reg_default es9018k2m_reg_defaults[] = {
 	{ 0, 0x00 },
@@ -67,52 +64,31 @@ static const struct reg_default es9018k2m_reg_defaults[] = {
 
 static bool es9018k2m_writeable(struct device *dev, unsigned int reg)
 {
-	if(reg > ES9018K2M_CACHEREGNUM)
-		return  0;
-	else if(reg == 0x2 || reg == 0x3)
-		return 0;
-	else
-		return 1;
+	return (reg < 64);
 }
 
 static bool es9018k2m_readable(struct device *dev, unsigned int reg)
 {
-	if(reg <= ES9018K2M_CACHEREGNUM && reg != 2 && reg !=3)
-		return 1;
-	else if(65 <= reg && reg <= 69)
-		return 1;
-	else if(70 <= reg && reg <= 93)
-		return 1;
-	else
-		return 0;
+	return (reg <= 102);
 }
 
 static bool es9018k2m_volatile(struct device *dev, unsigned int reg)
 {
-	return false;
+	return true;
 }
 
 static int es9018k2m_mute(struct snd_soc_dai *dai, int mute)
 {
 	if(mute)
 	{
-		if(!SABRE9018Q2C_isMuted)
-		{
-			SABRE9018Q2C_VOLUME1 = snd_soc_read(dai->codec, ES9018K2M_VOLUME1);
-			SABRE9018Q2C_VOLUME2 = snd_soc_read(dai->codec, ES9018K2M_VOLUME2);
-			SABRE9018Q2C_isMuted = true;
-		}
-		snd_soc_write(dai->codec, ES9018K2M_VOLUME1, 0xFF);
-		snd_soc_write(dai->codec, ES9018K2M_VOLUME2, 0xFF);
+		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x1);
 	}
 	return 0;
 }
 
 static int es9018k2m_unmute(struct snd_soc_dai *dai)
 {
-	snd_soc_write(dai->codec, ES9018K2M_VOLUME1, SABRE9018Q2C_VOLUME1);
-	snd_soc_write(dai->codec, ES9018K2M_VOLUME2, SABRE9018Q2C_VOLUME2);
-	SABRE9018Q2C_isMuted = false;
+	snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x0);
 	return 0;
 }
 /* Volume Scale */

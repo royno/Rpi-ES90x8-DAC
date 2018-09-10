@@ -3,10 +3,18 @@
 *.ko
 *.obj
 *.elf
+*.dtb
+*.dtbo
+*.o.d
+*.order
+*.symvers
 
 # Precompiled Headers
 *.gch
 *.pch
+*.mod.c
+*.cmd
+*.mod
 
 # Libraries
 *.lib
