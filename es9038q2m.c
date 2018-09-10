@@ -229,7 +229,9 @@ static int es9018k2m_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 
 static void es9018k2m_shutdown(struct snd_pcm_substream * substream, struct snd_soc_dai *dai)
 {
-	es9018k2m_mute(dai, 1);
+//	es9018k2m_mute(dai, 1);
+	struct snd_soc_codec      *codec = dai->codec;
+ 	snd_soc_write(codec, ES9018K2M_SYSTEM_SETTING, 0x1);
 }
 
 static int es9018k2m_dai_trigger(struct snd_pcm_substream *substream, int cmd, struct snd_soc_dai *dai)
@@ -240,7 +242,7 @@ static int es9018k2m_dai_trigger(struct snd_pcm_substream *substream, int cmd, s
 		case SNDRV_PCM_TRIGGER_START:
 		case SNDRV_PCM_TRIGGER_RESUME:
 		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-//			mdelay(1500);
+			mdelay(200);
 			es9018k2m_unmute(dai);
 			break;
 		case SNDRV_PCM_TRIGGER_STOP:
