@@ -35,30 +35,23 @@ struct es9018k2m_priv {
 /* SABRE9018Q2C Default Register Value */
 static const struct reg_default es9018k2m_reg_defaults[] = {
 	{ 0, 0x00 },
-	{ 1, 0x8c },
-	{ 4, 0x00 },
-	{ 5, 0x68 },
+	{ 1, 0xcc },
 	{ 6, 0x42 },
 	{ 7, 0x80 },
-	{ 8, 0x10 },
-	{ 9, 0x00 },
-	{ 10,0x00 },
-	{ 11,0x02 },
+	{ 8, 0xdd },
+	{ 10,0x02 },
 	{ 12,0x5a },
 	{ 13,0x40 },
-	{ 14,0x8a },
-	{ 15,0x80 },
-	{ 16,0x80 },
+	{ 14,0x0a },
+	{ 15,0x50 },
+	{ 16,0x50 },
 	{ 17,0xff },
 	{ 18,0xff },
 	{ 19,0xff },
 	{ 20,0x7f },
-	{ 21,0x00 },
-	{ 26,0x00 },
-	{ 27,0x00 },
-	{ 28,0x00 },
-	{ 29,0x00 },
+	{ 27,0xd4 },
 	{ 30,0x00 },
+	{ 64,0x70 },
 };
 
 
@@ -243,7 +236,7 @@ static int es9018k2m_dai_trigger(struct snd_pcm_substream *substream, int cmd, s
 		case SNDRV_PCM_TRIGGER_START:
 		case SNDRV_PCM_TRIGGER_RESUME:
 		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-			mdelay(1500);
+//			mdelay(1500);
 			es9018k2m_unmute(dai);
 			break;
 		case SNDRV_PCM_TRIGGER_STOP:
@@ -276,7 +269,7 @@ static struct snd_soc_dai_driver es9018k2m_dai = {
 		.rates = SNDRV_PCM_RATE_CONTINUOUS,
 		.rate_min = 8000,
 		.rate_max = 384000,
-		.formats      = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
+		.formats      = /*SNDRV_PCM_FMTBIT_S16_LE*/ | SNDRV_PCM_FMTBIT_S24_LE | \
 		    SNDRV_PCM_FMTBIT_S32_LE,
 	},
 	.ops = &es9018k2m_dai_ops,
