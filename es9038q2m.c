@@ -34,17 +34,12 @@ struct es9018k2m_priv {
 
 /* SABRE9018Q2C Default Register Value */
 static const struct reg_default es9018k2m_reg_defaults[] = {
-	{ 0, 0x00 },
-	{ 1, 0xcc },
-	{ 6, 0x42 },
-	{ 7, 0x80 },
-	{ 8, 0xdd },
-	{ 10,0x02 },
-	{ 12,0x5a },
-	{ 13,0x40 },
-	{ 14,0x0a },
-	{ 15,0x50 },
-	{ 16,0x50 },
+	{ ES9038Q2M_INPUT_CONFIG, 0xcc },
+	{ ES9038Q2M_DEEMPHASIS_DOP, 0x42 },
+	{ ES9038Q2M_FLT_BW_MUTE, 0x80 },
+	{ ES9038Q2M_SOFT_START, 0x0a },
+	{ ES9038Q2M_VOLUME1,0x50 },
+	{ ES9038Q2M_VOLUME2,0x50 },
 	{ 17,0xff },
 	{ 18,0xff },
 	{ 19,0xff },
@@ -89,7 +84,7 @@ static const DECLARE_TLV_DB_SCALE(volume_tlv, -12750, 50, 1);
 
 /* Control */
 static const struct snd_kcontrol_new es9018k2m_controls[] = {
-SOC_DOUBLE_R_TLV("Digital Playback Volume", ES9018K2M_VOLUME1, ES9018K2M_VOLUME2,
+SOC_DOUBLE_R_TLV("Digital Playback Volume", ES9038Q2M_VOLUME1, ES9038Q2M_VOLUME2,
 		 0, 255, 1, volume_tlv),
 };
 
@@ -159,7 +154,7 @@ static int es9018k2m_dai_startup(
 	//init codec	
 	es9018k2m_mute(dai, 1);
 	snd_soc_write(codec, ES9038Q2M_DEEMPHASIS_DOP, 0x4a);
-	snd_soc_write(codec, ES9018K2M_SOFT_START, 0xca);
+	snd_soc_write(codec, ES9038Q2M_SOFT_START, 0xca);
 	switch (es9018k2m->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		return es9018k2m_dai_startup_master(substream, dai);
@@ -178,7 +173,7 @@ static int es9018k2m_hw_params(
 {
 	struct snd_soc_codec *codec = dai->codec;
 
-	uint8_t iface = snd_soc_read(codec, ES9018K2M_INPUT_CONFIG) & 0x3f;
+	uint8_t iface = snd_soc_read(codec, ES9038Q2M_INPUT_CONFIG) & 0x3f;
 
 	switch (params_format(params)) {
 		case SNDRV_PCM_FORMAT_S16_LE:
@@ -194,7 +189,7 @@ static int es9018k2m_hw_params(
 			return -EINVAL;
 	}
 
-	snd_soc_write(codec, ES9018K2M_INPUT_CONFIG, iface);
+	snd_soc_write(codec, ES9038Q2M_INPUT_CONFIG, iface);
 	return 0;
 }
 
@@ -331,7 +326,7 @@ static int es9018k2m_probe(struct device *dev, struct regmap *regmap)
 	dev_set_drvdata(dev, es9018k2m);
 
 	//reset and init es9038
-	regmap_write(regmap, ES9018K2M_SYSTEM_SETTING, 0x1);	
+	regmap_write(regmap, ES9038Q2M_SYSTEM_SETTING, 0x1);	
 
 
 	ret = snd_soc_register_codec(dev,
