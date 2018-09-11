@@ -61,9 +61,9 @@ static bool es9018k2m_volatile(struct device *dev, unsigned int reg)
 
 static int es9018k2m_mute(struct snd_soc_dai *dai, int mute)
 {
-	if(mute)
+//	if(mute)
 //		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x1);
-	else
+//	else
 //		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x0);		
 	return 0;
 }
