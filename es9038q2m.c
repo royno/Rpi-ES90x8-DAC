@@ -62,9 +62,9 @@ static bool es9018k2m_volatile(struct device *dev, unsigned int reg)
 static int es9018k2m_mute(struct snd_soc_dai *dai, int mute)
 {
 	if(mute)
-		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x1);
+//		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x1);
 	else
-		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x0);		
+//		snd_soc_update_bits(dai->codec,ES9038Q2M_FLT_BW_MUTE, 0x1, 0x0);		
 	return 0;
 }
 
@@ -146,7 +146,7 @@ static int es9018k2m_dai_startup(
 	struct es9018k2m_priv *es9018k2m
 					= snd_soc_codec_get_drvdata(codec);
 	//init codec	
-	es9018k2m_mute(dai, 1);
+//	es9018k2m_mute(dai, 1);
 	snd_soc_write(codec, ES9038Q2M_DEEMPHASIS_DOP, 0x4a);
 	snd_soc_write(codec, ES9038Q2M_SOFT_START, 0xca);
 	switch (es9018k2m->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
@@ -229,13 +229,13 @@ static int es9018k2m_dai_trigger(struct snd_pcm_substream *substream, int cmd, s
 		case SNDRV_PCM_TRIGGER_START:
 		case SNDRV_PCM_TRIGGER_RESUME:
 		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-			mdelay(200);
-			es9018k2m_unmute(dai);
+//			mdelay(200);
+//			es9018k2m_unmute(dai);
 			break;
 		case SNDRV_PCM_TRIGGER_STOP:
 		case SNDRV_PCM_TRIGGER_SUSPEND:
 		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-			es9018k2m_mute(dai, 1);
+//			es9018k2m_mute(dai, 1);
 			break;
 		default:
 			ret = -EINVAL;
