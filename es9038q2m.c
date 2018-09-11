@@ -156,11 +156,7 @@ static int es9018k2m_dai_startup(
 	struct snd_soc_codec     *codec = dai->codec;
 	struct es9018k2m_priv *es9018k2m
 					= snd_soc_codec_get_drvdata(codec);
-	//reset and init es9038
-	snd_soc_write(codec, ES9018K2M_SYSTEM_SETTING, 0x1);
-	es9018k2m_mute(dai, 1);
-	snd_soc_write(codec, ES9038Q2M_DEEMPHASIS_DOP, 0x4a);
-	snd_soc_write(codec, ES9018K2M_SOFT_START, 0xca);
+//	es9018k2m_mute(dai, 1);
 	switch (es9018k2m->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		return es9018k2m_dai_startup_master(substream, dai);
@@ -331,6 +327,11 @@ static int es9018k2m_probe(struct device *dev, struct regmap *regmap)
 	es9018k2m->regmap = regmap;
 
 	dev_set_drvdata(dev, es9018k2m);
+
+	//reset and init es9038
+	regmap_write(regmap, ES9018K2M_SYSTEM_SETTING, 0x1);	
+	regmap_write(regmap, ES9038Q2M_DEEMPHASIS_DOP, 0x4a);
+	regmap_write(regmap, ES9018K2M_SOFT_START, 0xca);
 
 	ret = snd_soc_register_codec(dev,
 			&es9018k2m_codec_driver, &es9018k2m_dai, 1);
