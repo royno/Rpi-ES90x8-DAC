@@ -230,7 +230,6 @@ static void es9018k2m_shutdown(struct snd_pcm_substream * substream, struct snd_
 {
 //	es9018k2m_mute(dai, 1);
 	struct snd_soc_codec      *codec = dai->codec;
- 	snd_soc_write(codec, ES9018K2M_SYSTEM_SETTING, 0x1);
 }
 
 static int es9018k2m_dai_trigger(struct snd_pcm_substream *substream, int cmd, struct snd_soc_dai *dai)
@@ -274,7 +273,7 @@ static struct snd_soc_dai_driver es9018k2m_dai = {
 		.rates = SNDRV_PCM_RATE_CONTINUOUS,
 		.rate_min = 8000,
 		.rate_max = 384000,
-		.formats      = /*SNDRV_PCM_FMTBIT_S16_LE |*/ SNDRV_PCM_FMTBIT_S24_LE | \
+		.formats      = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
 		    SNDRV_PCM_FMTBIT_S32_LE,
 	},
 	.ops = &es9018k2m_dai_ops,
