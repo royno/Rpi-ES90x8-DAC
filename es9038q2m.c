@@ -38,15 +38,9 @@ static const struct reg_default es9018k2m_reg_defaults[] = {
 	{ ES9038Q2M_DEEMPHASIS_DOP, 0x42 },
 	{ ES9038Q2M_FLT_BW_MUTE, 0x80 },
 	{ ES9038Q2M_SOFT_START, 0x0a },
-	{ ES9038Q2M_VOLUME1,0x50 },
-	{ ES9038Q2M_VOLUME2,0x50 },
-	{ 17,0xff },
-	{ 18,0xff },
-	{ 19,0xff },
-	{ 20,0x7f },
-	{ 27,0xd4 },
-	{ 30,0x00 },
-	{ 64,0x70 },
+	{ ES9038Q2M_VOLUME1, 0x50 },
+	{ ES9038Q2M_VOLUME2, 0x50 },
+	{ ES9038Q2M_GENERAL_CONFIG, 0xd4 },	
 };
 
 
@@ -62,7 +56,7 @@ static bool es9018k2m_readable(struct device *dev, unsigned int reg)
 
 static bool es9018k2m_volatile(struct device *dev, unsigned int reg)
 {
-	return true;
+	return false;
 }
 
 static int es9018k2m_mute(struct snd_soc_dai *dai, int mute)
@@ -285,7 +279,7 @@ static struct snd_soc_codec_driver es9018k2m_codec_driver = {
 static const struct regmap_config es9018k2m_regmap = {
 	.reg_bits         = 8,
 	.val_bits         = 8,
-	.max_register     = 93,
+	.max_register     = 102,
 
 	.reg_defaults     = es9018k2m_reg_defaults,
 	.num_reg_defaults = ARRAY_SIZE(es9018k2m_reg_defaults),
@@ -301,7 +295,7 @@ static const struct regmap_config es9018k2m_regmap = {
 bool es9018k2m_check_chip_id(struct snd_soc_codec *codec)
 {
 	unsigned int value;
-	value = snd_soc_read(codec, 0x64);
+	value = snd_soc_read(codec, ES9038Q2M_CHIP_ID_STATUS);
 	if ((value & 0xfc) != 0x70) {
 		return false;
 	}
@@ -327,7 +321,6 @@ static int es9018k2m_probe(struct device *dev, struct regmap *regmap)
 
 	//reset and init es9038
 	regmap_write(regmap, ES9038Q2M_SYSTEM_SETTING, 0x1);	
-
 
 	ret = snd_soc_register_codec(dev,
 			&es9018k2m_codec_driver, &es9018k2m_dai, 1);
